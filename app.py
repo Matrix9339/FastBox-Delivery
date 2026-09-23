@@ -5,19 +5,12 @@ import random
 import csv
 
 
-# =========================================================
-# CONFIGURATION
-# =========================================================
-
 # Random delivery delay settings
 MIN_DELAY = 5
 MAX_DELAY = 30
 
 
-# =========================================================
-# DISTANCE
-# =========================================================
-
+ 
 def calculate_distance(point1, point2):
 
     x1, y1 = point1
@@ -29,10 +22,7 @@ def calculate_distance(point1, point2):
     )
 
 
-# =========================================================
-# NORMALIZE INPUT DATA
-# =========================================================
-
+ 
 def normalize_data(data):
 
     if not isinstance(data, dict):
@@ -40,10 +30,7 @@ def normalize_data(data):
             "JSON data must be an object."
         )
 
-    # -----------------------------------------------------
-    # Warehouses
-    # -----------------------------------------------------
-
+    
     if "warehouses" not in data:
         raise ValueError(
             "Missing 'warehouses' field."
@@ -92,10 +79,7 @@ def normalize_data(data):
             "'warehouses' must be a list or dictionary."
         )
 
-    # -----------------------------------------------------
-    # Agents
-    # -----------------------------------------------------
-
+     
     if "agents" not in data:
         raise ValueError(
             "Missing 'agents' field."
@@ -143,10 +127,7 @@ def normalize_data(data):
             "'agents' must be a list or dictionary."
         )
 
-    # -----------------------------------------------------
-    # Packages
-    # -----------------------------------------------------
-
+     
     if "packages" not in data:
         raise ValueError(
             "Missing 'packages' field."
@@ -181,7 +162,7 @@ def normalize_data(data):
 
         package_ids.add(package_id)
 
-        # Support both formats
+         
         if "warehouse_id" in package:
 
             warehouse_id = package["warehouse_id"]
@@ -210,10 +191,7 @@ def normalize_data(data):
             "destination": package["destination"]
         })
 
-    # -----------------------------------------------------
-    # Return common structure
-    # -----------------------------------------------------
-
+     
     return {
         "warehouses": warehouse_map,
         "agents": agent_map,
@@ -221,10 +199,7 @@ def normalize_data(data):
     }
 
 
-# =========================================================
-# VALIDATE DATA
-# =========================================================
-
+ 
 def validate_data(data):
 
     required_fields = [
@@ -244,10 +219,7 @@ def validate_data(data):
     agents = data["agents"]
     packages = data["packages"]
 
-    # -----------------------------------------------------
-    # Warehouses
-    # -----------------------------------------------------
-
+     
     if not isinstance(warehouses, dict):
 
         raise ValueError(
@@ -283,10 +255,7 @@ def validate_data(data):
                 "invalid coordinates."
             )
 
-    # -----------------------------------------------------
-    # Agents
-    # -----------------------------------------------------
-
+     
     if not isinstance(agents, dict):
 
         raise ValueError(
@@ -322,10 +291,7 @@ def validate_data(data):
                 "invalid coordinates."
             )
 
-    # -----------------------------------------------------
-    # Packages
-    # -----------------------------------------------------
-
+     
     if not isinstance(packages, list):
 
         raise ValueError(
@@ -378,9 +344,7 @@ def validate_data(data):
             )
 
 
-# =========================================================
-# FIND NEAREST AGENT
-# =========================================================
+
 
 def find_nearest_agent(
     warehouse_location,
@@ -393,8 +357,7 @@ def find_nearest_agent(
 
     for agent_id in agents:
 
-        # For normal assignment, use the agent's current
-        # position.
+        # For normal assignment, use the agent's current position
         if current_location is not None:
 
             agent_location = current_location[agent_id]
@@ -416,10 +379,7 @@ def find_nearest_agent(
     return nearest_agent
 
 
-# =========================================================
-# ASSIGN PACKAGES
-# =========================================================
-
+ 
 def assign_packages(data):
 
     warehouses = data["warehouses"]
@@ -444,10 +404,7 @@ def assign_packages(data):
     return assignments
 
 
-# =========================================================
-# RANDOM DELIVERY DELAY
-# =========================================================
-
+ 
 def generate_random_delay():
 
     return random.randint(
@@ -456,10 +413,7 @@ def generate_random_delay():
     )
 
 
-# =========================================================
-# SIMULATE DELIVERIES
-# =========================================================
-
+ 
 def simulate_deliveries(
     data,
     assignments,
@@ -471,16 +425,10 @@ def simulate_deliveries(
     agents = data["agents"]
     packages = data["packages"]
 
-    # -----------------------------------------------------
-    # Copy agents so original data isn't modified
-    # -----------------------------------------------------
-
+     
     current_agents = agents.copy()
 
-    # -----------------------------------------------------
-    # Tracking information
-    # -----------------------------------------------------
-
+     
     total_distance = {}
 
     packages_delivered = {}
@@ -491,10 +439,7 @@ def simulate_deliveries(
 
     route_history = {}
 
-    # -----------------------------------------------------
-    # Initialize agents
-    # -----------------------------------------------------
-
+     
     for agent_id, location in current_agents.items():
 
         total_distance[agent_id] = 0.0
@@ -507,7 +452,7 @@ def simulate_deliveries(
 
         route_history[agent_id] = []
 
-        # Starting location
+         
         route_history[agent_id].append(
             {
                 "type": "start",
@@ -515,27 +460,15 @@ def simulate_deliveries(
             }
         )
 
-    # -----------------------------------------------------
-    # Determine when new agent joins
-    #
-    # If there are 10 packages, it joins before package 6.
-    # -----------------------------------------------------
-
+      
     join_index = None
 
     if mid_day_agent is not None:
 
         join_index = len(packages) // 2
 
-    # -----------------------------------------------------
-    # Process packages
-    # -----------------------------------------------------
-
+     
     for index, package in enumerate(packages):
-
-        # -------------------------------------------------
-        # New agent joins halfway through the day
-        # -------------------------------------------------
 
         if (
             mid_day_agent is not None
@@ -582,10 +515,7 @@ def simulate_deliveries(
                 f"{new_agent_location}"
             )
 
-        # -------------------------------------------------
-        # Package information
-        # -------------------------------------------------
-
+         
         package_id = package["id"]
 
         warehouse_id = package["warehouse"]
@@ -594,12 +524,7 @@ def simulate_deliveries(
 
         warehouse_location = warehouses[warehouse_id]
 
-        # -------------------------------------------------
-        # If the package has not been assigned because
-        # a new agent joined, find the nearest current
-        # agent.
-        # -------------------------------------------------
-
+         
         if package_id not in assignments:
 
             agent_id = find_nearest_agent(
@@ -612,11 +537,7 @@ def simulate_deliveries(
 
             agent_id = assignments[package_id]
 
-            # -------------------------------------------------
-            # If assigned agent is not available anymore,
-            # choose another agent.
-            # -------------------------------------------------
-
+             
             if agent_id not in current_agents:
 
                 agent_id = find_nearest_agent(
@@ -625,19 +546,13 @@ def simulate_deliveries(
                     current_location
                 )
 
-        # -------------------------------------------------
-        # Agent -> Warehouse
-        # -------------------------------------------------
-
+        
         distance_to_warehouse = calculate_distance(
             current_location[agent_id],
             warehouse_location
         )
 
-        # -------------------------------------------------
-        # Warehouse -> Destination
-        # -------------------------------------------------
-
+         
         distance_to_destination = calculate_distance(
             warehouse_location,
             destination
@@ -652,10 +567,7 @@ def simulate_deliveries(
 
         packages_delivered[agent_id] += 1
 
-        # -------------------------------------------------
-        # Random delay
-        # -------------------------------------------------
-
+         
         delay = 0
 
         if use_delays:
@@ -664,10 +576,7 @@ def simulate_deliveries(
 
             total_delay[agent_id] += delay
 
-        # -------------------------------------------------
-        # Store route
-        # -------------------------------------------------
-
+         
         route_history[agent_id].append(
             {
                 "type": "warehouse",
@@ -684,10 +593,7 @@ def simulate_deliveries(
             }
         )
 
-        # -------------------------------------------------
-        # Agent is now at destination
-        # -------------------------------------------------
-
+         
         current_location[agent_id] = destination[:]
 
         print(
@@ -704,26 +610,17 @@ def simulate_deliveries(
     )
 
 
-# =========================================================
-# GENERATE REPORT
-# =========================================================
-
+ 
 def generate_report(
     data,
     use_delays=False,
     mid_day_agent=None
 ):
 
-    # -----------------------------------------------------
-    # Initial assignment
-    # -----------------------------------------------------
-
+     
     assignments = assign_packages(data)
 
-    # -----------------------------------------------------
-    # Simulate
-    # -----------------------------------------------------
-
+     
     (
         total_distance,
         packages_delivered,
@@ -737,11 +634,7 @@ def generate_report(
     )
 
     report = {}
-
-    # -----------------------------------------------------
-    # Generate report for each agent
-    # -----------------------------------------------------
-
+ 
     for agent_id in total_distance:
 
         count = packages_delivered[agent_id]
@@ -770,17 +663,14 @@ def generate_report(
             )
         }
 
-        # Add delay information only if enabled
+         
         if use_delays:
 
             report[agent_id][
                 "total_delay_minutes"
             ] = delay
 
-    # -----------------------------------------------------
-    # Find best agent
-    # -----------------------------------------------------
-
+    
     active_agents = []
 
     for agent_id in packages_delivered:
@@ -811,10 +701,7 @@ def generate_report(
     )
 
 
-# =========================================================
-# ASCII ROUTE VISUALIZATION
-# =========================================================
-
+ 
 def print_ascii_routes(
     data,
     route_history
@@ -886,10 +773,7 @@ def print_ascii_routes(
     )
 
 
-# =========================================================
-# ASCII COORDINATE MAP
-# =========================================================
-
+ 
 def print_coordinate_map(
     data,
     route_history
@@ -902,7 +786,6 @@ def print_coordinate_map(
 
     all_points = []
 
-    # Warehouses
     for warehouse_id, location in data[
         "warehouses"
     ].items():
@@ -915,7 +798,6 @@ def print_coordinate_map(
             )
         )
 
-    # Agents
     for agent_id, location in data[
         "agents"
     ].items():
@@ -962,9 +844,6 @@ def print_coordinate_map(
         for _ in range(height)
     ]
 
-    # -----------------------------------------------------
-    # Add warehouses
-    # -----------------------------------------------------
 
     for warehouse_id, location in data[
         "warehouses"
@@ -1009,10 +888,7 @@ def print_coordinate_map(
 
         grid[grid_y][grid_x] = "W"
 
-    # -----------------------------------------------------
-    # Add agents
-    # -----------------------------------------------------
-
+   
     for agent_id, location in data[
         "agents"
     ].items():
@@ -1056,10 +932,7 @@ def print_coordinate_map(
 
         grid[grid_y][grid_x] = "A"
 
-    # -----------------------------------------------------
-    # Print map
-    # -----------------------------------------------------
-
+     
     for row in grid:
 
         print(
@@ -1079,10 +952,7 @@ def print_coordinate_map(
     print("A = Agent")
 
 
-# =========================================================
-# EXPORT TOP PERFORMER TO CSV
-# =========================================================
-
+ 
 def export_top_performer_csv(
     report,
     file_name="top_performer.csv"
@@ -1110,7 +980,6 @@ def export_top_performer_csv(
 
         writer = csv.writer(file)
 
-        # Header
         writer.writerow([
             "agent_id",
             "packages_delivered",
@@ -1119,7 +988,7 @@ def export_top_performer_csv(
             "total_delay_minutes"
         ])
 
-        # Data
+
         writer.writerow([
             best_agent,
             agent_data["packages_delivered"],
@@ -1137,10 +1006,7 @@ def export_top_performer_csv(
     )
 
 
-# =========================================================
-# FILE SELECTION
-# =========================================================
-
+ 
 def get_file_name():
 
     print("\nAvailable options:")
@@ -1186,10 +1052,6 @@ def get_file_name():
     )
 
 
-# =========================================================
-# BONUS FEATURE MENU
-# =========================================================
-
 def get_bonus_options():
 
     print("\nBonus Features")
@@ -1225,10 +1087,7 @@ def get_bonus_options():
     return choice
 
 
-# =========================================================
-# GET MID-DAY AGENT
-# =========================================================
-
+ 
 def get_mid_day_agent(data):
 
     print("\nNew Agent Information")
@@ -1274,28 +1133,19 @@ def get_mid_day_agent(data):
     }
 
 
-# =========================================================
-# MAIN
-# =========================================================
-
+ 
 def main():
 
     try:
 
-        # -------------------------------------------------
-        # Select file
-        # -------------------------------------------------
-
+         
         file_name = get_file_name()
 
         print(
             f"\nReading: {file_name}"
         )
 
-        # -------------------------------------------------
-        # Load JSON
-        # -------------------------------------------------
-
+          
         with open(
             file_name,
             "r",
@@ -1304,25 +1154,14 @@ def main():
 
             data = json.load(file)
 
-        # -------------------------------------------------
-        # Normalize
-        # -------------------------------------------------
-
+         
         data = normalize_data(data)
-
-        # -------------------------------------------------
-        # Validate
-        # -------------------------------------------------
 
         validate_data(data)
 
         print(
             "Input data validated successfully."
         )
-
-        # -------------------------------------------------
-        # Bonus options
-        # -------------------------------------------------
 
         bonus_choice = get_bonus_options()
 
@@ -1364,10 +1203,7 @@ def main():
                 "Invalid bonus feature choice."
             )
 
-        # -------------------------------------------------
-        # New agent
-        # -------------------------------------------------
-
+        
         mid_day_agent = None
 
         if use_new_agent:
@@ -1376,10 +1212,7 @@ def main():
                 data
             )
 
-        # -------------------------------------------------
-        # Generate report
-        # -------------------------------------------------
-
+       
         (
             report,
             assignments,
@@ -1390,10 +1223,7 @@ def main():
             mid_day_agent
         )
 
-        # -------------------------------------------------
-        # Package assignments
-        # -------------------------------------------------
-
+        
         print("\n")
         print("=" * 60)
         print("PACKAGE ASSIGNMENTS")
@@ -1405,10 +1235,7 @@ def main():
                 f"{package_id} -> {agent_id}"
             )
 
-        # -------------------------------------------------
-        # Report
-        # -------------------------------------------------
-
+        
         print("\n")
         print("=" * 60)
         print("DELIVERY REPORT")
@@ -1450,11 +1277,7 @@ def main():
             f"\nBest Agent: "
             f"{report['best_agent']}"
         )
-
-        # -------------------------------------------------
-        # ASCII route
-        # -------------------------------------------------
-
+ 
         if use_ascii:
 
             print_ascii_routes(
@@ -1466,10 +1289,6 @@ def main():
                 data,
                 route_history
             )
-
-        # -------------------------------------------------
-        # Save JSON report
-        # -------------------------------------------------
 
         report_file = (
             create_report_filename(
@@ -1493,10 +1312,6 @@ def main():
             f"\nReport saved to: "
             f"{report_file}"
         )
-
-        # -------------------------------------------------
-        # Export CSV
-        # -------------------------------------------------
 
         if use_csv:
 
@@ -1525,10 +1340,6 @@ def main():
         )
 
 
-# =========================================================
-# CREATE REPORT FILE NAME
-# =========================================================
-
 def create_report_filename(file_name):
 
     base_name = os.path.basename(
@@ -1543,10 +1354,6 @@ def create_report_filename(file_name):
         f"{base_name}_report.json"
     )
 
-
-# =========================================================
-# PROGRAM START
-# =========================================================
 
 if __name__ == "__main__":
 
